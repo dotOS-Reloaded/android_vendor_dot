@@ -40,10 +40,10 @@ function breakfast()
 {
     target=$1
     local variant=$2
-    CM_DEVICES_ONLY="true"
+    DOT_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
     add_lunch_combo full-eng
-    for f in `/bin/ls vendor/cm/vendorsetup.sh 2> /dev/null`
+    for f in `/bin/ls vendor/dot/vendorsetup.sh 2> /dev/null`
         do
             echo "including $f"
             . $f
@@ -64,11 +64,11 @@ function breakfast()
                 variant="userdebug"
             fi
 
-            if ! check_product lineage_$target && check_product cm_$target; then
+            if ! check_product dot_$target && check_product dot_$target; then
                 echo "** Warning: '$target' is using CM-based makefiles. This will be deprecated in the next major release."
-                lunch cm_$target-$variant
+                lunch dot_$target-$variant
             else
-                lunch lineage_$target-$variant
+                lunch dot_$target-$variant
             fi
         fi
     fi
@@ -80,8 +80,8 @@ alias bib=breakfast
 function eat()
 {
     if [ "$OUT" ] ; then
-        MODVERSION=$(get_build_var LINEAGE_VERSION)
-        ZIPFILE=lineage-$MODVERSION.zip
+        MODVERSION=$(get_build_var DOT_VERSION)
+        ZIPFILE=$MODVERSION.zip
         ZIPPATH=$OUT/$ZIPFILE
         if [ ! -f $ZIPPATH ] ; then
             echo "Nothing to eat"
@@ -96,7 +96,7 @@ function eat()
             done
             echo "Device Found.."
         fi
-        if (adb shell getprop ro.cm.device | grep -q "$CM_BUILD"); then
+        if (adb shell getprop ro.dot.device | grep -q "$DOT_BUILD"); then
             # if adbd isn't root we can't write to /cache/recovery/
             adb root
             sleep 1
@@ -112,7 +112,7 @@ EOF
             fi
             rm /tmp/command
         else
-            echo "The connected device does not appear to be $CM_BUILD, run away!"
+            echo "The connected device does not appear to be $DOT_BUILD, run away!"
         fi
         return $?
     else
@@ -244,13 +244,18 @@ function cmremote()
         return 1
     fi
     git remote rm cmremote 2> /dev/null
-    GERRIT_REMOTE=$(git config --get remote.github.projectname)
-    CMUSER=$(git config --get review.review.lineageos.org.username)
+    local GERRIT_REMOTE=$(git config --get remote.github.projectname)
+    if [ -z "$GERRIT_REMOTE" ]
+    then
+        local GERRIT_REMOTE=$(git config --get remote.aosp.projectname | sed s#platform/#android/#g | sed s#/#_#g)
+        local PFX="LineageOS/"
+    fi
+    local CMUSER=$(git config --get review.review.lineageos.org.username)
     if [ -z "$CMUSER" ]
     then
-        git remote add cmremote ssh://review.lineageos.org:29418/$GERRIT_REMOTE
+        git remote add cmremote ssh://review.lineageos.org:29418/$PFX$GERRIT_REMOTE
     else
-        git remote add cmremote ssh://$CMUSER@review.lineageos.org:29418/$GERRIT_REMOTE
+        git remote add cmremote ssh://$CMUSER@review.lineageos.org:29418/$PFX$GERRIT_REMOTE
     fi
     echo "Remote 'cmremote' created"
 }
@@ -263,10 +268,10 @@ function aospremote()
         return 1
     fi
     git remote rm aosp 2> /dev/null
-    PROJECT=$(pwd -P | sed -e "s#$ANDROID_BUILD_TOP\/##; s#-caf.*##; s#\/default##")
+    local PROJECT=$(pwd -P | sed -e "s#$ANDROID_BUILD_TOP\/##; s#-caf.*##; s#\/default##")
     if (echo $PROJECT | grep -qv "^device")
     then
-        PFX="platform/"
+        local PFX="platform/"
     fi
     git remote add aosp https://android.googlesource.com/$PFX$PROJECT
     echo "Remote 'aosp' created"
@@ -280,10 +285,10 @@ function cafremote()
         return 1
     fi
     git remote rm caf 2> /dev/null
-    PROJECT=$(pwd -P | sed -e "s#$ANDROID_BUILD_TOP\/##; s#-caf.*##; s#\/default##")
+    local PROJECT=$(pwd -P | sed -e "s#$ANDROID_BUILD_TOP\/##; s#-caf.*##; s#\/default##")
     if (echo $PROJECT | grep -qv "^device")
     then
-        PFX="platform/"
+        local PFX="platform/"
     fi
     git remote add caf https://source.codeaurora.org/quic/la/$PFX$PROJECT
     echo "Remote 'caf' created"
@@ -319,18 +324,21 @@ function installboot()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 > /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.cm.device | grep -q "$CM_BUILD");
+    if (adb shell getprop ro.cm.device | grep -q "$DOT_BUILD");
     then
         adb push $OUT/boot.img /cache/
-        for i in $OUT/system/lib/modules/*;
-        do
-            adb push $i /system/lib/modules/
-        done
+        if [ -e "$OUT/system/lib/modules/*" ];
+        then
+            for i in $OUT/system/lib/modules/*;
+            do
+                adb push $i /system/lib/modules/
+            done
+            adb shell chmod 644 /system/lib/modules/*
+        fi
         adb shell dd if=/cache/boot.img of=$PARTITION
-        adb shell chmod 644 /system/lib/modules/*
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $CM_BUILD, run away!"
+        echo "The connected device does not appear to be $DOT_BUILD, run away!"
     fi
 }
 
@@ -364,13 +372,13 @@ function installrecovery()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 >> /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.cm.device | grep -q "$CM_BUILD");
+    if (adb shell getprop ro.cm.device | grep -q "$DOT_BUILD");
     then
         adb push $OUT/recovery.img /cache/
         adb shell dd if=/cache/recovery.img of=$PARTITION
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $CM_BUILD, run away!"
+        echo "The connected device does not appear to be $DOT_BUILD, run away!"
     fi
 }
 
@@ -791,7 +799,7 @@ function dopush()
         echo "Device Found."
     fi
 
-    if (adb shell getprop ro.cm.device | grep -q "$CM_BUILD") || [ "$FORCE_PUSH" = "true" ];
+    if (adb shell getprop ro.cm.device | grep -q "$DOT_BUILD") || [ "$FORCE_PUSH" = "true" ];
     then
     # retrieve IP and PORT info if we're using a TCP connection
     TCPIPPORT=$(adb devices \
@@ -909,7 +917,7 @@ EOF
     rm -f $OUT/.log
     return 0
     else
-        echo "The connected device does not appear to be $CM_BUILD, run away!"
+        echo "The connected device does not appear to be $DOT_BUILD, run away!"
     fi
 }
 

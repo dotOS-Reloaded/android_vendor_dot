@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TextAppearance.Widget.ActionBar.Title" parent="@android:style/TextAppearance.Medium">
+      <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+    <style name="TextAppearance.Material.Title" parent="@android:style/TextAppearance.Material">
+          <item name="android:textColor">?android:attr/colorAccent</item>
+    </style>
+</resources>

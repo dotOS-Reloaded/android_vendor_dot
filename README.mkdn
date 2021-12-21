@@ -1,50 +1,120 @@
-LineageOS
-===========
+<p align="center">
+<img src="https://github.com/DotOS/manifest/blob/dot-n/dot%20devs.png" width="290px" height="320px" > 
 
-Submitting Patches
-------------------
-Patches are always welcome!  Please submit your patches via LineageOS Gerrit!
-You can do this by using these commands:
+Getting Started with making tree for dotOS from LOS
+---------------------------------------------------
+To get started with the building process, you'll need to get familiar with [Git and Repo](http://source.android.com/source/using-repo.html).
 
-    (From root android directory)
-    . build/envsetup.sh
-    (Go to repo you are patching, make your changes and commit)
-    cmgerrit <for(new)/changes(patch set)> <branch/change-id> 
+To initialize your local repository, use a command like this:
 
-    repo start cm-14.1 .
-    (Make your changes and commit)
-    repo upload .
-Note: "." meaning current directory
-For more help on using this tool, use this command: repo help upload
-
-Make your changes and commit with a detailed message, starting with what you are working with (i.e. vision: Update Kernel)
-Commit your patches in a single commit. Squash multiple commit using this command: git rebase -i HEAD~<# of commits>
-
-To view the status of your and others' patches, visit [LineageOS Code Review](http://review.lineageos.org/)
-
-
-Getting Started
----------------
-
-To get started with Android/LineageOS, you'll need to get
-familiar with [Repo](https://source.android.com/source/using-repo.html) and [Version Control with Git](https://source.android.com/source/version-control.html).
-
-To initialize your local repository using the LineageOS trees, use a command like this:
-
-    repo init -u git://github.com/LineageOS/android.git -b cm-14.1
+    repo init -u git://github.com/DotOS/manifest.git -b dot-n
 
 Then to sync up:
 
-    repo sync
+    repo sync  -f --force-sync --no-clone-bundle
 
-Please see the [LineageOS Wiki](http://wiki.lineageos.org/) for building instructions, by device.
+Additionally, you can define the number of parallel download repo should do:
 
-For more information on this Github Organization and how it is structured, 
-please [read the wiki article](http://wiki.lineageos.org/w/Github_Organization)
+    repo sync -f -jX --force-sync --no-clone-bundle    ( X is the number of parallel download repo should do choose depending on your cpu )
 
-Buildbot
---------
+To create tree:
 
-All supported devices are built nightly and periodically as changes are committed to ensure the source trees remain buildable.
+    get a los based tree and open vendorsetup.sh ,lineage.mk and AndroidProducts.mk (if there) and rename all "liniage" or "cm" with "dot"
 
-You can view the current build statuses in the [Jenkins](http://jenkins.lineageos.org) tool.
+
+To compile the rom :
+
+	. build/envsetup.sh (choose your preference there )
+   
+    lunch dot_$codename
+   
+  	brunch $codename
+	
+	
+Getting Official Maintainership for dotOS
+-----------------------------------------
+To get Official Maintainership for dotOS you should have a stable device sources
+
+First make a unofficial build of dotOS and post in [**XDA**](xda-developers.com) 
+
+Fill this form up :- [**Maintainership Form**](https://goo.gl/forms/HBamYej6Ia9sdnhF2) 
+
+Note : You get addded or selected for a single device. To maintain another device you will need to fill up the Maintainership FORM again
+
+After that We will contact you by judging your Un-Official build published on xda
+
+
+
+Join our [**Telegram Channel**](https://t.me/dotOSchannel) and our  [**Telegram group**](https://t.me/dotos)
+
+To publish builds use our Template : [**DotOS XDA Template**](https://github.com/DotOS/XDA_Template-changelogs)
+
+
+
+## Submitting Patches ##
+------------------
+DotOS poject is an open source, any patches/contributions are always welcome !
+
+To begin with, you need to login to our code review system at [dotOS Code Review](https://gerrit.droidontime.com)
+
+We support login using Google Oauth or Github Oauth provider, which means if you have either of account you can login to gerrit by that account.
+It is important that you set the USERNAME in your account on gerrit. If you have logged in using Github account then your Github USERNAME will be used as gerrit USERNAME automatically. Else you can set unique username in `Profile` section of gerrit account Settings.
+
+The next step is to add your SSH key to your gerrit account.
+
+Refer the Github guide on [how to generate SSH key](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/)
+
+Add the generated SSH key (the contents of id_rsa.pub file) to your gerrit account in `SSH Public Keys` section.
+
+
+
+You can upload the patches/contributions for review process using following procedure:
+
+```
+git clone PROJECT
+```
+For Example -  git clone http://gerrit.droidontime.com/DotOS/android_packages_apps_Settings
+```
+cd CLONED_DIRECTORY
+```
+
+Make the changes you wish to add for review and execute following commands,
+```
+git add -A
+git commit -m "commit message"
+```
+Commit message should be clear, well written and easy to understand.
+
+If you have satisfied with the changes you made then you can upload the patchset to gerrit.
+```
+git push ssh://USERNAME@gerrit.droidontime.com:29418/PROJECT_NAME HEAD:refs/for/dot-o
+```
+Here the PROJECT_NAME is the path to repository on gerrit. You can find the PROJECT_NAME by navingating to the `Projects` section on gerrit.
+
+For example - DotOS/android_packages_apps_Settings
+
+It is recommended that you commit your several relevent patches in to one single commit.
+
+Squash multiple commits using this command:
+```
+git rebase -i HEAD~<# of commits>
+```
+If you are going to make extra changes to an existing patch, Don't start a new patch, instead
+```
+git add .
+
+git commit --amend
+```
+and simply push the changes to gerrit
+
+Gerrit will recognize it as a new patchset in an exisiting commit.
+
+To view the status of your and/or others patches, visit [dotOS Code Review](https://gerrit.droidontime.com)
+
+If you encounter any issues, feel free to contact us on our [Telegram channel](https://t.me/dotos). We will be happy to assist you !
+
+
+<p align="center">
+<img src="https://github.com/DotOS/manifest/blob/dot-n/dotlogo.png" > 
+</p>
+
